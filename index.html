@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RECON 40 | ELITE</title>
+    <style>
+        :root { 
+            --neon: #00f2ff; 
+            --neon-glow: rgba(0, 242, 255, 0.4);
+            --success: #39ff14;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: radial-gradient(circle at top right, #1a1a24, var(--bg)); color: white; margin: 0; padding: 20px 15px 40px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        .card { background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; width: 100%; max-width: 380px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 380px; display: flex; justify-content: space-between; align-items: center;}
+        .header h1 { font-size: 1.8rem; margin: 0; letter-spacing: 2px; color: var(--neon); text-shadow: 0 0 10px var(--neon-glow); }
+        .day-badge { background: var(--glass); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--neon); color: var(--neon); font-weight: bold;}
+        .ring-container { position: relative; width: 160px; height: 160px; margin: 0 auto 15px; }
+        svg { transform: rotate(-90deg); width: 160px; height: 160px; }
+        circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+        .bg-ring { stroke: rgba(255,255,255,0.05); }
+        .progress-ring { stroke: var(--neon); stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: drop-shadow(0 0 6px var(--neon-glow)); }
+        .protein-stats { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%;}
+        .current-p { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 5px; display: block;}
+        .goal-p { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px;}
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 14px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; cursor: pointer; }
+        button:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+        .btn-primary { border-color: var(--neon); color: var(--neon); background: rgba(0, 242, 255, 0.05); }
+        .mission-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 10px; border: 1px solid transparent; }
+        .mission-item.completed { border-color: var(--success); background: rgba(57, 255, 20, 0.05); }
+        .check-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #555; display: flex; align-items: center; justify-content: center;}
+        .completed .check-circle { background: var(--success); border-color: var(--success); box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);}
+        .save-tag { font-size: 0.6rem; color: var(--success); position: fixed; top: 10px; right: 10px; opacity: 0; transition: 0.5s; }
+        .reset-btn { width: 100%; max-width: 380px; padding: 18px; background: #1a1a1a; border: 1px solid #333; border-radius: 16px; color: #666; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="save-msg" class="save-tag">CLOUD SYNCED</div>
+
+    <div class="header">
+        <h1>RECON 40</h1>
+        <div class="day-badge">DAY <span id="day-counter">1</span></div>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0; font-size:1rem; color:#aaa; letter-spacing:1px;">DAILY FUEL</h3>
+            <button style="background:transparent; border:none; color:#666; font-size:0.8rem; text-decoration:underline;" onclick="undoProtein()">Undo Last</button>
+        </div>
+        
+        <div class="ring-container">
+            <svg><circle class="bg-ring" cx="80" cy="80" r="74"></circle><circle id="progress" class="progress-ring" cx="80" cy="80" r="74"></circle></svg>
+            <div class="protein-stats">
+                <span id="current-p" class="current-p">0</span>
+                <span class="goal-p">/ 100g</span>
+            </div>
+        </div>
+        
+        <div class="btn-grid">
+            <button class="btn-primary" onclick="addProtein(30)">5 Eggs (30g)</button>
+            <button class="btn-primary" onclick="addProtein(75)">250g Chicken (75g)</button>
+            <button onclick="addProtein(25)">Shake (25g)</button>
+            <button onclick="addCustom()">+ Custom</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin:0 0 15px 0; font-size:1rem; color:#aaa; letter-spacing:1px;">DIRECTIVES</h3>
+        <div class="mission-item" id="m1" onclick="toggleMission('m1')">
+            <div class="m-info"><h4>Chest Destroyer</h4><p>3 Sets Diamond/Decline Pushups</p></div>
+            <div class="check-circle"></div>
+        </div>
+        <div class="mission-item" id="m2" onclick="toggleMission('m2')">
+            <div class="m-info"><h4>Active Shift</h4><p>Steps tracked on the floor</p></div>
+            <div class="check-circle"></div>
+        </div>
+    </div>
+
+    <button class="reset-btn" onclick="endDay()">COMPLETE DAY & RESET</button>
+
+    <script>
+        // Data Load with explicit parsing
+        let protein = parseInt(localStorage.getItem('R40_P')) || 0;
+        let day = parseInt(localStorage.getItem('R40_D')) || 1;
+        let history = JSON.parse(localStorage.getItem('R40_H')) || [];
+
+        function saveAll() {
+            localStorage.setItem('R40_P', protein.toString());
+            localStorage.setItem('R40_D', day.toString());
+            localStorage.setItem('R40_H', JSON.stringify(history));
+            
+            // Visual feedback
+            const msg = document.getElementById('save-msg');
+            msg.style.opacity = '1';
+            setTimeout(() => { msg.style.opacity = '0'; }, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('current-p').innerText = protein;
+            document.getElementById('day-counter').innerText = day;
+            const ring = document.getElementById('progress');
+            const offset = 440 - (Math.min(protein, 100) / 100) * 440;
+            ring.style.strokeDashoffset = offset;
+            
+            if (protein >= 100) ring.style.stroke = "var(--success)";
+            else ring.style.stroke = "var(--neon)";
+            saveAll();
+        }
+
+        function addProtein(amt) { history.push(amt); protein += amt; updateUI(); }
+        function undoProtein() { if (history.length > 0) { protein -= history.pop(); updateUI(); } }
+        function addCustom() {
+            let val = prompt("Protein grams:");
+            if(val && !isNaN(val)) addProtein(parseInt(val));
+        }
+
+        function toggleMission(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('completed');
+            localStorage.setItem('R40_' + id, el.classList.contains('completed'));
+            saveAll();
+        }
+
+        function endDay() {
+            if(confirm("Ready for Day " + (day + 1) + "?")) {
+                protein = 0; history = []; day++;
+                ['m1', 'm2'].forEach(id => {
+                    document.getElementById(id).classList.remove('completed');
+                    localStorage.setItem('R40_' + id, 'false');
+                });
+                updateUI();
+            }
+        }
+
+        // Initialize Mission States
+        ['m1', 'm2'].forEach(id => {
+            if (localStorage.getItem('R40_' + id) === 'true') {
+                document.getElementById(id).classList.add('completed');
+            }
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>
